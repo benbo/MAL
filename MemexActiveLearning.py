@@ -3,6 +3,8 @@ from sklearn.linear_model import LogisticRegression
 import numpy as np
 from BeautifulSoup import BeautifulSoup
 import json
+import os
+import cPickle as pickle
 
 class MemexActiveLearner:
 
@@ -12,7 +14,15 @@ class MemexActiveLearner:
         self.clf = LogisticRegression(C=100, penalty='l1')
         self.next_idx=None
         self.next_label=None
-        
+        self.vectorizer=None
+
+    def init_data(self,corpus,labels,clean=False):
+        #corpus is a list of text
+        #labels is a numpy array where 0 is unlabeled, 1 is positive, -1 is negative
+        self.text = corpus
+        clean_text = [line for line in self.clean_text(corpus)]
+        self.my_labels=labels
+        self.featurize_text(clean_text)
 
     def load_pennystocktweet_news(self):
         clean_text = [line.rstrip() for line in open('data/spam_train.txt','r')]
@@ -30,10 +40,16 @@ class MemexActiveLearner:
         #zero_indices = np.where(my_labels==0)[0]
         self.featurize_text(clean_text)
         
-    def featurize_text(self,clean_text):
-        vocab=[line.split(',')[0] for line in open('data/spam_stability_selection.csv','r')][:1000]
-        vectorizer = CountVectorizer( stop_words="english", ngram_range=(1, 1),vocabulary=vocab, analyzer="word", max_df=0.8, min_df=0.01, binary=True,max_features=None)
-        self.X = vectorizer.fit_transform(clean_text)
+    def featurize_text(self,clean_text,vectorizer_preload=False):
+        if vectorizer_preload:
+            #vectorizer already loaded, don't fit
+            if self.vectorizer is not None:
+                self.X = self.vectorizer.transform(clean_text)
+        else:
+
+            vocab=[line.split(',')[0] for line in open('data/spam_stability_selection.csv','r')][:1000]
+            self.vectorizer = CountVectorizer( stop_words="english", ngram_range=(1, 1),vocabulary=vocab, analyzer="word", max_df=0.8, min_df=0.01, binary=True,max_features=None)
+            self.X = self.vectorizer.fit_transform(clean_text)
         
     def find_closest(self,array,value):
         idx = (np.abs(array-value)).argmin()
@@ -118,6 +134,35 @@ class MemexActiveLearner:
 
             yield line.lower()
 
+    def load_classifier(self,filename,path=''):
+        if not os.path.isfile(f):
+            print 'File does not exists'
+            return
+        self.clf=pickle.load(open(f,'wb'))
+        
+    def load_vectorizer(self,filename,path=''):
+        if not os.path.isfile(f):
+            print 'File does not exists'
+            return
+        self.vectorizer=pickle.load(open(f,'wb'))
+
+    def save_classifier(self,filename,path='',overwrite=False):
+        f=os.path.join(path,filename)
+        if not overwrite:
+            if os.path.isfile(f):
+                print 'File already exists'
+                return
+        pickle.dump(self.clf,open(f,'wb'))
+
+
+    def save_vectorizer(self,filename,path='',overwrite=False):
+        f=os.path.join(path,filename)
+        if not overwrite:
+            if os.path.isfile(f):
+                print 'File already exists'
+                return
+        pickle.dump(self.vectorizer,open(f,'wb'))
+            
         
     def set_label(self,value):
         if value not in [-1,1,'-1','1']:
@@ -128,6 +173,7 @@ class MemexActiveLearner:
         else:
             self.next_label=value
             self.my_labels[self.next_idx]=value
+
 
     def clean_text(self,corpus,html=True):
         #unwanted chars:
@@ -169,20 +215,9 @@ class MemexActiveLearner:
                 #remove non ascii characters
                 line = filter(lambda x: x in string.printable, line)
 
-                #or replace non ascii characters
-                #html = ''.join([x.lower() if (x in string.printable) else 'X' for x in line])
-                #line = re.sub(r'X[X\s]*',' X ',line)
-
                 #remove certain characters using fast c code translate function
                 line=line.translate(remove_nowhite_map)
-                #replace certain characters with whitesapce
                 line=line.translate(remove_white_map)
 
-                #If text is string and not unicode, use this:
-                #line=line.translate(None,charsNOWHITE)
-                #line=line.translate(transtable)
-
-                #remove excessive whitespaces
-                #line = " ".join(line.split())
 
                 yield line.lower()
