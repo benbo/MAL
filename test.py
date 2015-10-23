@@ -1,5 +1,5 @@
-from MemexActiveLearning import MemexActiveLearner
-AL=MemexActiveLearner()
+from SimpleAL import SimpleAL
+AL=SimpleAL()
 AL.load_pennystocktweet_news()
 AL.run_classifier(init=True)
 print AL.get_next()
