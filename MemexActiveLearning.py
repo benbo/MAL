@@ -25,6 +25,13 @@ class MemexActiveLearner:
         self.featurize_text(clean_text)
 
     def load_pennystocktweet_news(self):
+        files=['data/spam_train.txt','data/promotions/3.jl','data/spam_labels.csv']
+        for f in files:
+            if not os.path.isfile(f):
+                print 'cannot load data, one or more files do not exist' 
+                print 'the following files are required: \n'+'\n'.join(files)
+                exit()
+                
         clean_text = [line.rstrip() for line in open('data/spam_train.txt','r')]
         #self.text = self.clean_text
         
