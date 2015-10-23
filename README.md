@@ -5,8 +5,8 @@ At this stage hard coded to use certain news data files. Use this component iter
 
 ##Usage
 
-    from MemexActiveLearning import MemexActiveLearner
-    AL=MemexActiveLearner()
+    from SimpleAL import SimpleAL
+    AL=SimpleAL()
     AL.load_pennystocktweet_news()
     AL.run_classifier(init=True)
     print AL.get_next()
