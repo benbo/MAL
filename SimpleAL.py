@@ -89,7 +89,7 @@ class SimpleAL:
         # Scheffer, T., Decomain, C., & Wrobel, S. (2001). Active hidden markov models for information extraction. 
         #    In Advances in Intelligent Data Analysis (pp. 309-318). Springer Berlin Heidelberg.
         desc=(-np.sort(-array,axis=1))#sort rows of predictions
-        return np.argmin(desc[:,1]-desc[:,2])
+        return np.argmax(desc[:,1]-desc[:,2])
 
     def find_highest(self,array):
         idx = array.argmax()
@@ -256,8 +256,8 @@ def classify():
 
 if __name__ == "__main__":  
     SAL=SimpleAL()
-    corpus=[(key,doc) for key,doc in SAL.load_marketwired()]
-    #corpus=[(key,doc) for key,doc in SAL.load_marketwired(dirs=['TESTDATA'])]
+    #corpus=[(key,doc) for key,doc in SAL.load_marketwired()]
+    corpus=[(key,doc) for key,doc in SAL.load_marketwired(dirs=['TESTDATA'])]
     keys,corpus=izip(*corpus)
     labels=np.zeros(len(keys))
     pos_indices=np.array([i for i,text in enumerate(corpus) if 'forward-looking' in text])
