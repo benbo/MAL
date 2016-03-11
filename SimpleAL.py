@@ -89,7 +89,7 @@ class SimpleAL:
         # Scheffer, T., Decomain, C., & Wrobel, S. (2001). Active hidden markov models for information extraction. 
         #    In Advances in Intelligent Data Analysis (pp. 309-318). Springer Berlin Heidelberg.
         desc=(-np.sort(-array,axis=1))#sort rows of predictions
-        return np.argmin(desc[:,1]-desc[:,2])
+        return np.argmin(desc[:,0]-desc[:,1])
 
     def find_highest(self,array):
         idx = array.argmax()
